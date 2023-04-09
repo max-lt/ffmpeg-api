@@ -1,4 +1,4 @@
-[github-license-url]: /blob/master/LICENSE
+[github-license-url]: /LICENSE
 [action-docker-url]: https://github.com/max-lt/ffmpeg-api/actions/workflows/docker.yml
 [github-container-url]: https://github.com/max-lt/ffmpeg-api/pkgs/container/ffmpeg-api
 
