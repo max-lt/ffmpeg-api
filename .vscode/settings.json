@@ -1,0 +1,8 @@
+{
+  "deno.enable": true,
+  "deno.lint": true,
+  "cSpell.words": [
+    "Deno",
+    "libmp3lame"
+  ]
+}

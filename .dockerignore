@@ -1,0 +1,6 @@
+# dockerignore for worker-engine
+
+.vscode
+.git
+
+dist
