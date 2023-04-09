@@ -1,15 +1,19 @@
 import { copy } from 'https://deno.land/std@0.182.0/streams/copy.ts';
 import { readerFromIterable } from 'https://deno.land/std@0.182.0/streams/reader_from_iterable.ts';
 
-function oggToMp3(file: ReadableStream<Uint8Array>): ReadableStream<Uint8Array> {
+type OutFormat = 'mp3' | 'wav';
+
+function convertOgg(format: OutFormat, input: ReadableStream<Uint8Array>): ReadableStream<Uint8Array> {
   const p = Deno.run({
-    cmd: ['/usr/bin/ffmpeg', '-i', 'pipe:0', '-codec:a', 'libmp3lame', '-loglevel', 'error', '-f', 'mp3', 'pipe:1'],
+    cmd: ['/usr/bin/ffmpeg', '-i', 'pipe:0', '-codec:a', 'libmp3lame', '-loglevel', 'error', '-f', format, 'pipe:1'],
     stdin: 'piped',
     stdout: 'piped',
-    stderr: 'piped',
+    stderr: 'piped'
   });
 
-  copy(readerFromIterable(file), p.stdin).catch((err) => console.warn(err)).finally(() => p.stdin.close());
+  copy(readerFromIterable(input), p.stdin)
+    .catch((err) => console.warn(`Error while copying to stdin:`, err))
+    .finally(() => p.stdin.close());
 
   return p.stdout.readable;
 }
@@ -21,7 +25,7 @@ function handleRequest(request: Request): Response {
     return new Response('Hello World!');
   }
 
-  if (url.pathname === '/ogg-to-mp3') {
+  if (url.pathname === '/ogg-to-mp3' || url.pathname === '/ogg-to-wav') {
     if (request.method !== 'POST') {
       return new Response('Method not allowed', { status: 405 });
     }
@@ -38,7 +42,10 @@ function handleRequest(request: Request): Response {
       return new Response('Missing request body', { status: 400 });
     }
 
-    return new Response(oggToMp3(request.body), { headers: { 'Content-Type': 'audio/mpeg' } });
+    const format = url.pathname.slice(-3) as OutFormat;
+    const outType = format === 'mp3' ? 'audio/mpeg' : 'audio/wav';
+
+    return new Response(convertOgg(format, request.body), { headers: { 'Content-Type': outType } });
   }
 
   return new Response('Not found', { status: 404 });

@@ -22,7 +22,7 @@ You can use the Github Container Registry to pull the [Docker image](https://git
 ```
 docker pull ghcr.io/max-lt/ffmpeg-api:latest
 ```
-  
+
 Then, run the container:
 
 ```
@@ -59,7 +59,7 @@ docker run -p 8080:8080 ghcr.io/max-lt/ffmpeg-api:latest
    HTTP server running. Access it at: http://localhost:8080/
    ```
 
-2. To convert an OGG file, send a `POST` request to the `/ogg-to-mp3` endpoint with the OGG file as the request body. The response will contain the converted MP3 file.
+2. To convert an OGG file, send a `POST` request to the `/ogg-to-mp3` or `/ogg-to-wav` endpoint with the OGG file as the request body. The response will contain the converted file.
 
    For example, you can use `curl` to test the server:
 
