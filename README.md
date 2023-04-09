@@ -4,7 +4,7 @@
 
 # FFmpeg API
 
-[![License](https://img.shields.io/github/license/maxx-t/ffmpeg-api.svg)][github-license-url]
+[![License](https://img.shields.io/github/license/max-lt/ffmpeg-api.svg)][github-license-url]
 [![Build Status](https://github.com/max-lt/ffmpeg-api/actions/workflows/docker.yml/badge.svg)][action-docker-url]
 [![Build Status](https://ghcr-badge.deta.dev/max-lt/ffmpeg-api/size)][action-docker-url]
 
