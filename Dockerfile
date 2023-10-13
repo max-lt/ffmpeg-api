@@ -1,19 +1,23 @@
 # ffmpeg-api image
-FROM denoland/deno:alpine
+# FROM alpine:3.18
+FROM rust:1.73-alpine3.18 as builder
 
-RUN apk add --no-cache ffmpeg nano
+RUN apk add --no-cache ffmpeg libc-dev
 
-RUN mkdir -p /build/ffmpeg-api/dist
+RUN mkdir -p /build/ffmpeg-api
 
 WORKDIR /build/ffmpeg-api
 
 COPY . /build/ffmpeg-api
 
-# Prefer not to run as root.
-USER deno
+RUN cargo build --release
 
-# Preload lib
-RUN deno eval "import { copy } from 'https://deno.land/std@0.182.0/streams/copy.ts'; console.log('Loaded copy lib', void copy)"
-RUN deno eval "import { readerFromIterable } from 'https://deno.land/std@0.182.0/streams/reader_from_iterable.ts'; console.log('Loaded reader_from_iterable lib', void readerFromIterable)"
+FROM alpine:3.18
 
-CMD [ "deno", "run", "--allow-net", "--allow-run=/usr/bin/ffmpeg", "src/main.ts" ]
+RUN apk add --no-cache ffmpeg
+
+COPY --from=builder /build/ffmpeg-api/target/release/ffmpeg-api /usr/local/bin/ffmpeg-api
+
+ENTRYPOINT ["/usr/local/bin/ffmpeg-api"]
+
+EXPOSE 8080

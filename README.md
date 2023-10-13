@@ -8,11 +8,11 @@
 [![Build Status](https://github.com/max-lt/ffmpeg-api/actions/workflows/docker.yml/badge.svg)][action-docker-url]
 [![Build Status](https://ghcr-badge.deta.dev/max-lt/ffmpeg-api/size)][action-docker-url]
 
-This is a simple Deno server that uses FFmpeg to convert audio files from OGG format to MP3 format. The server listens on port `8080` and provides an endpoint to upload OGG files and receive the converted MP3 files as a response.
+This is a simple HTTP server that uses FFmpeg to convert audio files from OGG format to MP3/WAV format. The server listens on port `8080` and provides an endpoint to upload OGG files and send back the converted file as a response.
 
 ## Requirements
 
-- [Deno](https://deno.land/) runtime
+- [Rust](https://www.rust-lang.org/) installed on your system
 - [FFmpeg](https://ffmpeg.org/) installed on your system
 
 ## Using the Docker image
@@ -31,7 +31,7 @@ docker run -p 8080:8080 ghcr.io/max-lt/ffmpeg-api:latest
 
 ## Installation
 
-1. Ensure you have Deno installed on your system. You can check the [Deno installation guide](https://deno.land/manual/getting_started/installation) for detailed instructions.
+1. Ensure you have Rust installed on your system. You can check the [Rust installation guide](https://www.rust-lang.org/learn/get-started) for detailed instructions.
 
 2. Clone this repository:
 
@@ -50,14 +50,10 @@ docker run -p 8080:8080 ghcr.io/max-lt/ffmpeg-api:latest
 1. Start the server by running:
 
    ```
-   deno run --allow-net --allow-run=/usr/bin/ffmpeg src/main.ts
+   cargo run
    ```
 
-   The server will start and listen on port `8080`. You should see the following output:
-
-   ```
-   HTTP server running. Access it at: http://localhost:8080/
-   ```
+   The server will start and listen on port `8080`.
 
 2. To convert an OGG file, send a `POST` request to the `/ogg-to-mp3` or `/ogg-to-wav` endpoint with the OGG file as the request body. The response will contain the converted file.
 
