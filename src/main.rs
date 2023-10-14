@@ -1,8 +1,5 @@
 use actix_web::{error, http::header, post, web, App, Error, HttpServer, Responder};
 use futures::StreamExt;
-use std::io::Read;
-use std::io::Write;
-use std::process::{Command, Stdio};
 use web::Bytes;
 
 // 64 MiB
@@ -55,14 +52,14 @@ enum AudioFormat {
 
 async fn convert_ogg(ogg_data: Bytes, format: AudioFormat) -> Result<Bytes, Error> {
     // Run FFmpeg to convert the Ogg to WAV using stdin and stdout pipes
-    let mut ffmpeg = Command::new("/usr/bin/ffmpeg")
+    let cmd = subprocess::Exec::cmd("/usr/bin/ffmpeg")
         .args(&[
             "-i",
             "pipe:0",
             "-codec:a",
             "libmp3lame",
             "-loglevel",
-            "debug",
+            "error",
             "-f",
             match format {
                 AudioFormat::Wav => "wav",
@@ -70,62 +67,13 @@ async fn convert_ogg(ogg_data: Bytes, format: AudioFormat) -> Result<Bytes, Erro
             },
             "pipe:1",
         ])
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::null())
-        .spawn()
-        .map_err(|e| {
-            eprintln!("Error running FFmpeg: {:?}", e);
-            error::ErrorInternalServerError("Internal Server Error")
-        })?;
+        .stdin(ogg_data.to_vec())
+        .capture();
 
-    let stdin = ffmpeg
-        .stdin
-        .take()
-        .ok_or_else(|| error::ErrorInternalServerError("Failed to open stdin"))?;
-
-    let stdout = ffmpeg
-        .stdout
-        .take()
-        .ok_or_else(|| error::ErrorInternalServerError("Failed to open stdout"))?;
-
-    let ogg_data = ogg_data.to_vec();
-    let stdin = actix_web::rt::spawn(async move {
-        let mut stdin = std::io::BufWriter::new(stdin);
-        stdin.write_all(&ogg_data)?;
-        stdin.flush()?;
-        Result::<(), Error>::Ok(())
-    });
-
-    let stdout = actix_web::rt::spawn(async move {
-        let mut stdout = std::io::BufReader::new(stdout);
-        let mut wav_data = Vec::new();
-        stdout.read_to_end(&mut wav_data)?;
-        Result::<Vec<u8>, Error>::Ok(wav_data)
-    });
-
-    let (_, stdout_result) = futures::join!(stdin, stdout);
-
-    // Ensure FFmpeg exited successfully
-    let ffmpeg_result = ffmpeg.wait().map_err(|e| {
-        eprintln!("Error waiting for FFmpeg: {:?}", e);
-        error::ErrorInternalServerError("Internal Server Error")
-    })?;
-
-    if !ffmpeg_result.success() {
-        eprintln!("FFmpeg exited with error code: {:?}", ffmpeg_result.code());
-        return Err(error::ErrorInternalServerError("Internal Server Error"));
-    }
-
-    let wav_data = stdout_result.map_err(|e| {
-        eprintln!("Join error for stdout: {:?}", e);
-        error::ErrorInternalServerError("Internal Server Error")
-    })?;
-
-    match wav_data {
-        Ok(wav_data) => Ok(Bytes::from(wav_data)),
+    match cmd {
+        Ok(cmd) => Ok(Bytes::from(cmd.stdout)),
         Err(e) => {
-            eprintln!("Error reading stdout: {:?}", e);
+            eprintln!("Error running FFmpeg: {:?}", e);
             Err(error::ErrorInternalServerError("Internal Server Error"))
         }
     }
