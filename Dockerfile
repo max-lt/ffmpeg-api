@@ -1,8 +1,7 @@
 # ffmpeg-api image
-# FROM alpine:3.18
 FROM rust:1.73-alpine3.18 as builder
 
-RUN apk add --no-cache ffmpeg libc-dev
+RUN apk add --no-cache libc-dev
 
 RUN mkdir -p /build/ffmpeg-api
 

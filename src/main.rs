@@ -1,4 +1,4 @@
-use actix_web::{error, http::header, post, web, App, Error, HttpServer, Responder};
+use actix_web::{error, get, http::header, post, web, App, Error, HttpServer, Responder};
 use futures::StreamExt;
 use web::Bytes;
 
@@ -79,6 +79,11 @@ async fn convert_ogg(ogg_data: Bytes, format: AudioFormat) -> Result<Bytes, Erro
     }
 }
 
+#[get("/version")]
+async fn version() -> impl Responder {
+    env!("CARGO_PKG_VERSION")
+}
+
 #[post("/ogg-to-wav")]
 async fn ogg_to_wav(
     payload: web::Payload,
@@ -117,8 +122,13 @@ async fn ogg_to_mp3(
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    HttpServer::new(|| App::new().service(ogg_to_wav).service(ogg_to_mp3))
-        .bind(("0.0.0.0", 8080))?
-        .run()
-        .await
+    HttpServer::new(|| {
+        App::new()
+            .service(version)
+            .service(ogg_to_wav)
+            .service(ogg_to_mp3)
+    })
+    .bind(("0.0.0.0", 8080))?
+    .run()
+    .await
 }
