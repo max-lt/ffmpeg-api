@@ -11,13 +11,13 @@ COPY . /build/ffmpeg-api
 
 RUN --mount=type=cache,target=~/.cargo \
     --mount=type=cache,target=/build/ffmpeg-api/target \
-  cargo build --release
+  cargo build --release && cp /build/ffmpeg-api/target/release/ffmpeg-api /build/ffmpeg-api/output
 
 FROM alpine:3.18
 
 RUN apk add --no-cache ffmpeg
 
-COPY --from=builder /build/ffmpeg-api/target/release/ffmpeg-api /usr/local/bin/ffmpeg-api
+COPY --from=builder /build/ffmpeg-api/output /usr/local/bin/ffmpeg-api
 
 ENTRYPOINT ["/usr/local/bin/ffmpeg-api"]
 
