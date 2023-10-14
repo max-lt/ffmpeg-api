@@ -9,7 +9,9 @@ WORKDIR /build/ffmpeg-api
 
 COPY . /build/ffmpeg-api
 
-RUN cargo build --release
+RUN --mount=type=cache,target=~/.cargo \
+    --mount=type=cache,target=/build/ffmpeg-api/target \
+  cargo build --release
 
 FROM alpine:3.18
 
