@@ -1,6 +1,10 @@
-# dockerignore for worker-engine
+# dockerignore for ffmpeg-api
 
-.vscode
-.git
+# Ignore everything
+*
 
-target
+# But not these files...
+!Dockerfile
+!src/*.rs
+!Cargo.toml
+!Cargo.lock
